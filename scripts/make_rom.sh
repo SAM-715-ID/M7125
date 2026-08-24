@@ -135,18 +135,17 @@ if $BUILD_ROM; then
     if [ -d "$APKTOOL_DIR" ]; then
         LOG_STEP_IN true "Building APKs/JARs"
 
-        while IFS= read -r f; do
-            f="${f/$APKTOOL_DIR\//}"
-            PARTITION="$(cut -d "/" -f 1 -s <<< "$f")"
-            if [[ "$PARTITION" == "system" ]]; then
-                "$SRC_DIR/scripts/apktool.sh" b "system" "$f" &
-            else
-                "$SRC_DIR/scripts/apktool.sh" b "$PARTITION" "$(cut -d "/" -f 2- -s <<< "$f")" &
-            fi
-        done < <(find "$APKTOOL_DIR" -type d \( -name "*.apk" -o -name "*.jar" \))
+        MAX_JOBS="$(nproc)"
+        [ "$MAX_JOBS" -gt "8" ] && MAX_JOBS="8"
 
-        # shellcheck disable=SC2046
-        wait $(jobs -p) || exit 1
+        # shellcheck disable=SC2016
+        find "$APKTOOL_DIR" -type d \( -name "*.apk" -o -name "*.jar" \) -print0 | xargs -0 -I "{}" -P "$MAX_JOBS" \
+            bash -c '
+                FILE="${1/$APKTOOL_DIR\//}"
+                PARTITION="$(cut -d "/" -f 1 -s <<< "$FILE")"
+                [[ "$PARTITION" != "system" ]] && FILE="$(cut -d "/" -f 2- -s <<< "$FILE")"
+                "$SRC_DIR/scripts/apktool.sh" b "$PARTITION" "$FILE"
+            ' "bash" "{}" || exit 1
 
         LOG_STEP_OUT
     fi
