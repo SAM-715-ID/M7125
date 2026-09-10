@@ -17,8 +17,8 @@
 
 # SEC Floating Feature configuration file for Qualcomm Snapdragon 720G devices (sm7125)
 
-# Enable seamless refresh rate feature
-SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_MODE=2
+# Disable seamless refresh rate feature
+SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_MODE=1
 
 # Enable extra brightness feature
 SEC_FLOATING_FEATURE_LCD_SUPPORT_EXTRA_BRIGHTNESS=TRUE
